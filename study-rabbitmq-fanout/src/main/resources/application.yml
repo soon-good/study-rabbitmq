@@ -21,10 +21,10 @@ spring:
         format_sql: true
         use_sql_comments: true
   rabbitmq:
-    host: --
+    host: 주소입력
     port: 5671
     username: mqadmin
-    password: --
+    password: 비밀번호
     ssl:
       enabled: true
     listener:
