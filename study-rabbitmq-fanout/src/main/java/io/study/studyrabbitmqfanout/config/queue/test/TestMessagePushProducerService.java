@@ -3,6 +3,7 @@ package io.study.studyrabbitmqfanout.config.queue.test;
 import java.util.List;
 
 import org.springframework.amqp.core.FanoutExchange;
+import org.springframework.amqp.rabbit.core.BatchingRabbitTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
@@ -14,12 +15,15 @@ import org.springframework.stereotype.Service;
 public class TestMessagePushProducerService {
 	private final RabbitTemplate rabbitTemplate;
 	private final FanoutExchange fanoutExchange;
+	private final BatchingRabbitTemplate batchingRabbitTemplate;
 
 	public TestMessagePushProducerService(
 		@Qualifier("producerRabbitTemplate") final RabbitTemplate rabbitTemplate,
+		@Qualifier("batchingRabbitTemplate") final BatchingRabbitTemplate batchingRabbitTemplate,
 		@Qualifier("messagePushExchange") final FanoutExchange fanoutExchange
 	){
 		this.rabbitTemplate = rabbitTemplate;
+		this.batchingRabbitTemplate = batchingRabbitTemplate;
 		this.fanoutExchange = fanoutExchange;
 	}
 
@@ -29,6 +33,16 @@ public class TestMessagePushProducerService {
 		for(TestMessageDto message : list){
 			System.out.println("[데이터 전송] " + message.getMessage());
 			rabbitTemplate.convertAndSend(fanoutExchange.getName(), "", message);
+		}
+	}
+
+	@Scheduled(initialDelay = 1000, fixedRate = 500)
+	public void sendBulkMessage(){
+		List<TestMessageDto> list = TestMessageDto.selectSampleMessage(10);
+		for(TestMessageDto message : list){
+			batchingRabbitTemplate.convertAndSend(fanoutExchange.getName(), "", message);
+			// 또는 아래와 같이 구현해줘도 된다.
+			// batchingRabbitTemplate.send(fanoutExchange.getName(), "", _message); // message 를 Message 객체내에 감싸서 만든 객체를 넣어줘야 한다.
 		}
 	}
 
