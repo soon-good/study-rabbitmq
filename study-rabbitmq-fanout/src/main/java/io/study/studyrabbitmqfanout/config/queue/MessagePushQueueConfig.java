@@ -1,5 +1,8 @@
 package io.study.studyrabbitmqfanout.config.queue;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.ExchangeBuilder;
@@ -18,6 +21,15 @@ public class MessagePushQueueConfig {
 	public Queue messagePushQueue(){
 		final Queue pricePushQueue = new Queue("messagePushQueue");
 		return pricePushQueue;
+	}
+
+	@Bean(name = "messagePushDelayedQueue")
+	public Queue messagePushDelayedQueue(){
+		Map arguments = new HashMap();
+		arguments.put("x-dead-letter-exchange", "x2");
+		arguments.put("x-message-ttl", 5000L);
+		final Queue pricePushDelayedQueue = new Queue("messagePushDelayedQueue", false, false, false, arguments);
+		return pricePushDelayedQueue;
 	}
 
 	@Bean(name = "messagePushExchange")
