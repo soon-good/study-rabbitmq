@@ -10,9 +10,9 @@ send() 또는 convertAndSend () 메서드 내에 BatchingStrategy 타입의 인�
 
 <br>
 
-아래에 정리한 예제들의 전체 코드는 [github.com/gosgjung/study-rabbitmq](https://github.com/gosgjung/study-rabbitmq/tree/develop/message-delay/message-delay-1-using-header) 에 정리해두었다.<br>
+아래에 정리한 예제들의 전체 코드는 [github.com/gosgjung/study-rabbitmq](https://github.com/gosgjung/study-rabbitmq/tree/develop/message-delay/message-delay-1-using-header) 에 정리해두었다.
 
-
+<br>
 
 ## 참고자료
 
