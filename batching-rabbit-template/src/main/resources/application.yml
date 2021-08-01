@@ -1,0 +1,32 @@
+spring:
+  profiles:
+    active: test-rabbitmq-postgresql
+---
+spring:
+  config:
+    activate:
+      on-profile: test-rabbitmq-postgresql
+  datasource:
+    url: jdbc:postgresql://localhost:35432/postgres
+    username: postgres
+    password: 1111
+
+    hikari:
+      auto-commit: true
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+  rabbitmq:
+    host: 주소입력
+    port: 5671
+    username: mqadmin
+    password: 비번입력
+    ssl:
+      enabled: true
+    listener:
+      simple:
+        acknowledge-mode: manual
