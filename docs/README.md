@@ -7,13 +7,43 @@ Spring AMQP 공식문서의 내용을 요약 및 시나리오기반 테스트&�
 
 <br>
 
-###  TODO
+### 큐 가용성
 
-**큐 하나에 대한 최대 허용 메시지 건수**<br>
+> **참고자료**
+>
+> - [Part 1 - RabbitMQ Best Practice : number of queues](https://www.cloudamqp.com/blog/part1-rabbitmq-best-practice.html#number-of-queues)
+> - [Part 1 - RabbitMQ Best Practice - Part 1](https://www.cloudamqp.com/blog/part1-rabbitmq-best-practice.html)
+> - [Part 2 - RabbitMQ Best Practice - Part 2](https://www.cloudamqp.com/blog/part2-rabbitmq-best-practice-for-high-performance.html)
 
-큐 하나에 허용되는 메시지의 갯수가 7만건이라는 정보를 공식 페이지 어디서 봤었는데 어디에 정리했는지 기억이 안난다.이거 다시 찾아보고 정리해야 한다.<br>
+<br>
 
-매번 까먹는다. 정리하자 으... 
+**큐 하나가 처리할 수 있는 메시지의 갯수**<br>
+
+큐 하나는 이론 상으로 최대 5만건의 메시지를 처리 가능하다. 따라서 여러개의 Queue를 사용할 경우 가능한 한도 내에서는 멀티코어를 사용하는 것이 권장된다. 커넥션, 큐가 많을 경우에는 CPU, RAM 사용량을 줄이려면, busy polling 을 꺼두어야 한다.<br>
+
+**최대 메시지 사이즈, 최대 처리 메시지 갯수**<br>
+
+RabbitMQ 3.7.0 에서 한번에 보낼 수 있는 메시지의 한계치는 이론적으로 2GB 다. 그리고 공식 페이지에서는 한번에 메시지를 가장 최대로 보낼 때 안정적인 메시지의 사이즈로 128MB를 권장하고 있다.<br>
+
+<br>
+
+**Kepp Your Queue Short (If possible)**<br>
+
+큐 안에 대기하는 데이터가 많아지면 디스크 공간을 사용하게 되므로 큐 안에 저장하는 데이터의 양을 많게 하지 말라는 권고사항.<br>
+
+디스크 공간을 사용하는 것의 단점을 조금이나마 속도가 느려질 수 있다는 점이다. (=하지만 정교한 실시간 처리보다 안정성이 중요하다면 포기해도 되는 옵션이라고 생각된다.)<br>
+
+<br>
+
+**Use Quorum Queues**<br>
+
+Rabbit 3.8 부터는 Quorum Queue 라는 종류의 큐가 새롭게 추가되었는데, 공식 문서에서는 이 Quorum Queue 를 사용할 것을 권고하고 있다.<br>
+
+![이미지](./img/README/1.png)
+
+위 그림은 AmazonMQ 에서 quorum queue 를 활성화하는 메뉴를 캡처한 모습이다. 
+
+- 관리자 화면 > Admin > Feature Flags > quorum_queue > Enable
 
 <br>
 
@@ -27,24 +57,43 @@ Spring AMQP 공식문서의 내용을 요약 및 시나리오기반 테스트&�
 
 <br>
 
-### 생산자 측 - 배치(Batch) 메시지 전달방식 (Batching)
+### 메시지 Batch 처리
 
-메시지를 Batching 방식으로 보내야 할 때가 있다. 예를 들면 10건의 단건 메시지를 한번에 모아서 익스체인지에 보내주는 방식이다. 이런 Batch 메시지 전달 방식에 대해서는 [메시지 Batching - BatchingRabbitTemplate](https://github.com/gosgjung/study-rabbitmq/blob/develop/docs/%EB%A9%94%EC%8B%9C%EC%A7%80-Batching-%EB%B0%9C%EC%86%A1-BatchingRabbitTemplate.md) 에 정리해두었다.
+> 정리 문서
+>
+> - [메시지 Batching - BatchingRabbitTemplate](https://github.com/gosgjung/study-rabbitmq/blob/develop/docs/%EB%A9%94%EC%8B%9C%EC%A7%80-Batching-%EB%B0%9C%EC%86%A1-BatchingRabbitTemplate.md)
+>
+> - 메시지 Batch 발송 + 메시지 Batch 리슨 에 대해 정리해두었다.
+>
+> 참고 자료
+>
+> - [@RabbitListener with Batching](https://docs.spring.io/spring-amqp/docs/current/reference/html/#receiving-batch)
 
 <br>
 
-### 생산자 측 - Connection을 다수의 채널로 다중화
+메시지 Batch 처리를 할 경우. 생산자, 소비자에 모두 설정할 수 있다. 예를 들면 메시지를 단건으로 일일이 저장하기보다는 1000건을 한번에 모았다가 저장하는 경우를 예로 들어보자. <br>
 
-Connection 을 논리적인 개념인 채널로 만드는 과정에 대해 정리해야 한다. 아직 자료를 찾긴 했는데 정리는 언제할지 모르겠다. 아직까지는 필요하지는 않다.<br>
+**생산자 측의 Batching 처리**<br>
 
-- [Channel](https://rabbitmq.github.io/rabbitmq-java-client/api/current/com/rabbitmq/client/Channel.html#waitForConfirms(long))
-- [rabbitmq.com - Publishers](https://www.rabbitmq.com/publishers.html)
+이 경우 생산자 측에서 메시지가 1000건이 생길 때까지 모았다가 익스체인지에 전달(rabbitTemlate.convertAndSend() )하면 된다. 이런 처리는 BatchingRabbitTemplate 내부에서 편의성을 제공해주고 있어서 해당 설정을 구현한다면 프로그래머가 직접 메시지가 일정 건수까지 모일때까지 기다리지 않아도 된다.<br>
+
+자세한 내용은 [여기](https://github.com/gosgjung/study-rabbitmq/blob/develop/docs/%EB%A9%94%EC%8B%9C%EC%A7%80-Batching-%EB%B0%9C%EC%86%A1-BatchingRabbitTemplate.md#%EB%A9%94%EC%8B%9C%EC%A7%80-batching-%EB%B0%9C%EC%86%A1---batchingrabbittemplate) 를 참고하자.<br>
 
 <br>
 
-### 생산자/익스체인지 - 메시지 지연 전달방식(1)
+**소비자 측의 Batching 처리**<br>
 
-자세한 내용과 개념, 예제는 [메시지 딜레이 전송.md](https://github.com/gosgjung/study-rabbitmq/blob/develop/docs/%EB%A9%94%EC%8B%9C%EC%A7%80-%EB%94%9C%EB%A0%88%EC%9D%B4-%EC%A0%84%EC%86%A1.md) 에 정리해 두었다.<br>
+생산자 측에서 Batching 처리를 해서 convertAndSend(...) 한번에 여러개의 묶음 데이터를 보내게 되더라도, 소비자 측의 리스너에 별다른 설정 없이 @RabbitListen 할 경우 Batch 메시지를 1건씩 읽어들인다.<br>
+
+이때 RabbitLsitenerContainerFactory 를 구현한 SimpleRabbitListenerFactory 내의 batchLister 필드를 true 로 설정해서 batch 리슨을 활성화하고, 이 SimpleRabbitListenerFactory를 Bean으로 설정해서 @RabbitListen 의 containerFactory 필드에 주입해주면 된다. <br>
+
+자세한 내용은 [여기](https://github.com/gosgjung/study-rabbitmq/blob/develop/docs/%EB%A9%94%EC%8B%9C%EC%A7%80-Batching-%EB%B0%9C%EC%86%A1-BatchingRabbitTemplate.md#rabbitlistener-2---%EB%A9%94%EC%8B%9C%EC%A7%80-batch-%EB%A6%AC%EC%8A%A4%EB%8B%9D)를 참고하자.<br>
+
+<br>
+
+### RabbitTemplate 커넥션 관리 - ConnectionFactory
+
+자세한 내용은 [RabbitTemplate-커넥션-관리---ConnectionFactory.md](https://github.com/gosgjung/study-rabbitmq/blob/develop/docs/RabbitTemplate-%EC%BB%A4%EB%84%A5%EC%85%98-%EA%B4%80%EB%A6%AC---ConnectionFactory.md) 에 정리해두었다.<br>
 
 <br>
 
@@ -56,27 +105,15 @@ Connection 을 논리적인 개념인 채널로 만드는 과정에 대해 정�
 
 <br>
 
-### 소비자측 - 배치 방식 리슨 (정리 필요)
+### 생산자/익스체인지 - 메시지 지연 전달방식(1)
 
-자세한 내용은 [여기](https://github.com/gosgjung/study-rabbitmq/blob/develop/docs/%EB%A9%94%EC%8B%9C%EC%A7%80-Batching-%EB%B0%9C%EC%86%A1-BatchingRabbitTemplate.md) 에 정리해 두었다.<br>
+자세한 내용과 개념, 예제는 [메시지 딜레이 전송.md](https://github.com/gosgjung/study-rabbitmq/blob/develop/docs/%EB%A9%94%EC%8B%9C%EC%A7%80-%EB%94%9C%EB%A0%88%EC%9D%B4-%EC%A0%84%EC%86%A1.md) 에 정리해 두었다.<br>
 
-- [@RabbitListener with Batching](https://docs.spring.io/spring-amqp/docs/current/reference/html/#receiving-batch)
-
-메시지를 배치로 전송하면 메시지를 리슨하는 쪽에서도 배치로 받을 수 있다. 예를 들면 메시지를 보내는 측에서 `MessagePushDto` 를 10개를 모아서 익스체인지에 전달해놓았다고 해보자. 이렇게 보낸 메시지를 받을 때는 별다를 처리를 하지 않으면 똑같이 `MessagePushDto` 로 10번 받게 된다.<br>
-
-그런데,  `MessagePushDto` 로 받는 방식 말고, `List<MessagePushDto>` 로 한번에 10개의 `MessagePushDto` 를 받고 싶을 때가 있다. 푸시되는 사용자 메시지 데이터를 이력으로 남기기 위해 DB에 insert 하는 동작이 짧은 시간에 매우 자주 이루어지게 되는 경우를 예로 들수 있다. 이 경우 사용자 메시지를 한번에 5000건씩 저장하는 방식으로 조금 Insert 작업이 빈도를 낮추는 것도 괜찮은 방법인 것 같다.<br>
-
-메시지 리슨 동작을 배치 처리할 때는 보통  `SimpleRabbitListenerContainerFactory`  를 사용해 받도록 설정하는 편이다. 물론 다른 ListenerContainerFactory 역시도 사용할 수 있다. 이 내용에 대해서는 따로 문서에 정리해두었다. 정리한 문서의 링크는 이번주 금요일 쯤에 정리해두지 않을까 싶다.<br>
-
-
-
-### RabbitTemplate 커넥션 관리 - ConnectionFactory
-
-자세한 내용은 [RabbitTemplate-커넥션-관리---ConnectionFactory.md](https://github.com/gosgjung/study-rabbitmq/blob/develop/docs/RabbitTemplate-%EC%BB%A4%EB%84%A5%EC%85%98-%EA%B4%80%EB%A6%AC---ConnectionFactory.md) 에 정리해두었다.<br>
-
-
+<br>
 
 ### Retry with Batch Listeners
+
+> 정리 필요
 
 - [Retry with Batch Listeners](https://docs.spring.io/spring-amqp/docs/current/reference/html/#resilience-recovering-from-errors-and-broker-failures)
 
@@ -86,7 +123,18 @@ Connection 을 논리적인 개념인 채널로 만드는 과정에 대해 정�
 
 ### MessageListenerContainerConfiguration - batchSize 설정
 
+> 정리 필요
+
 - [Message Listener Container Configuration](https://docs.spring.io/spring-amqp/docs/current/reference/html/#containerAttributes)
+
+<br>
+
+### 생산자 측 - Connection을 다수의 채널로 다중화
+
+Connection 을 논리적인 개념인 채널로 만드는 과정에 대해 정리해야 한다. 아직 자료를 찾긴 했는데 정리는 언제할지 모르겠다. 아직까지는 필요하지는 않다.<br>
+
+- [Channel](https://rabbitmq.github.io/rabbitmq-java-client/api/current/com/rabbitmq/client/Channel.html#waitForConfirms(long))
+- [rabbitmq.com - Publishers](https://www.rabbitmq.com/publishers.html)
 
 <br>
 
