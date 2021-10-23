@@ -19,15 +19,16 @@ public class MessagePushQueueConfig {
 
 	@Bean(name = "messagePushQueue")
 	public Queue messagePushQueue(){
-		final Queue pricePushQueue = new Queue("messagePushQueue");
+		Map arguments = new HashMap();
+		arguments.put("x-message-ttl", 1000);  // 1초 전의 데이터까지는 새로 접속한 사람도 모두 받는다.
+		final Queue pricePushQueue = new Queue("messagePushQueue", false, false, false, arguments);
 		return pricePushQueue;
 	}
 
 	@Bean(name = "messagePushDelayedQueue")
 	public Queue messagePushDelayedQueue(){
 		Map arguments = new HashMap();
-		arguments.put("x-dead-letter-exchange", "x2");
-		arguments.put("x-message-ttl", 5000L);
+		arguments.put("x-message-ttl", 1000);	// 1초 전의 데이터까지는 새로 접속한 사람도 모두 받는다.
 		final Queue pricePushDelayedQueue = new Queue("messagePushDelayedQueue", false, false, false, arguments);
 		return pricePushDelayedQueue;
 	}
@@ -39,10 +40,26 @@ public class MessagePushQueueConfig {
 			.build();
 	}
 
+	@Bean(name = "messagePushDelayedExchange")
+	public FanoutExchange messagePushDelayedExchange(){
+		return ExchangeBuilder
+			.fanoutExchange("MESSAGE_PUSH_DELAYED_EXCHANGE")
+			.delayed()
+			.build();
+	}
+
 	@Bean(name = "messagePushBinding")
 	public Binding messagePushBinding(
 		@Qualifier("messagePushExchange") FanoutExchange exchange,
 		@Qualifier("messagePushQueue") Queue queue
+	){
+		return BindingBuilder.bind(queue).to(exchange);
+	}
+
+	@Bean(name = "messagePushDelayedBinding")
+	public Binding messagePushDelayedBinding(
+		@Qualifier("messagePushDelayedExchange") FanoutExchange exchange,
+		@Qualifier("messagePushDelayedQueue") Queue queue
 	){
 		return BindingBuilder.bind(queue).to(exchange);
 	}

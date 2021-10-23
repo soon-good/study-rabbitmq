@@ -2,6 +2,7 @@ package io.study.studyrabbitmqfanout.config.queue.test;
 
 import java.io.Serializable;
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,19 +17,17 @@ import lombok.ToString;
 @Builder
 @Data
 @ToString
-public class TestMessageDto{
+public class TestMessageDto implements Serializable{
 	private Long memberId;
 	private String message;
-	// private OffsetDateTime createdDt;
 
 	public static List<TestMessageDto> selectSampleMessage(int size){
 		List<TestMessageDto> list = new ArrayList<>();
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 		for(int i=0; i<size; i++){
 			final TestMessageDto messageDto = TestMessageDto.builder()
-				.message("메시지 " + i)
-				.memberId(Long.parseLong(String.valueOf(i)))
-				// .createdDt(OffsetDateTime.now())
+				.message("메시지 " + OffsetDateTime.now().format(formatter))
 				.build();
 			list.add(messageDto);
 		}

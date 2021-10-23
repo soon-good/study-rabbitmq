@@ -1,5 +1,7 @@
 package io.study.studyrabbitmqfanout.config.queue.test;
 
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.springframework.amqp.core.FanoutExchange;
@@ -29,14 +31,20 @@ public class TestMessagePushProducerService {
 
 	@Scheduled(initialDelay = 1000, fixedRate = 500)
 	public void sendMessageFixedRate(){
-		List<TestMessageDto> list = TestMessageDto.selectSampleMessage(10);
-		for(TestMessageDto message : list){
-			System.out.println("[데이터 전송] " + message.getMessage());
-			rabbitTemplate.convertAndSend(fanoutExchange.getName(), "", message);
-		}
+		// List<TestMessageDto> list = TestMessageDto.selectSampleMessage(10);
+		// for(TestMessageDto message : list){
+		// 	System.out.println("[데이터 전송] " + message.getMessage());
+		// 	rabbitTemplate.convertAndSend(fanoutExchange.getName(), "", message);
+		// }
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm:ss");
+		TestMessageDto msg = TestMessageDto.builder()
+			.message("메시지 " + OffsetDateTime.now().format(formatter))
+			.build();
+		System.out.println("[데이터 전송] " + msg.getMessage());
+		rabbitTemplate.convertAndSend(fanoutExchange.getName(), "", msg);
 	}
 
-	@Scheduled(initialDelay = 1000, fixedRate = 500)
+	// @Scheduled(initialDelay = 1000, fixedRate = 500)
 	public void sendBulkMessage(){
 		List<TestMessageDto> list = TestMessageDto.selectSampleMessage(10);
 		for(TestMessageDto message : list){
