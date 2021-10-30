@@ -126,6 +126,22 @@ $ sudo rabbitmq-plugins enable rabbitmq_stomp
 
 <br>
 
+```plain
+...
+
+Enabling plugins on node rabbit@rabbtimq-test-temp:
+rabbitmq_stomp
+The following plugins have been configured:
+  rabbitmq_stomp
+Applying plugin configuration to rabbit@rabbtimq-test-temp...
+The following plugins have been enabled:
+  rabbitmq_stomp
+
+started 1 plugins.
+```
+
+<br>
+
 ## RabbitMQ 의 설정파일
 
 > Stomp 플러그인으로 접속할 user/pw, port 등을 설정해줘야 한다.
@@ -192,6 +208,12 @@ Listener 포트를 변경하려면 [Configuration File](https://www.rabbitmq.com
 ex) <br>
 
 ```plain
+# =======================================
+# STOMP section
+# =======================================
+
+## See https://rabbitmq.com/stomp.html for details.
+
 ## TCP listeners.
 ##
 stomp.listeners.tcp.1 = 127.0.0.1:61613
@@ -204,7 +226,7 @@ stomp.tcp_listen_options.recbuf    = 131072
 stomp.tcp_listen_options.sndbuf    = 131072
 #
 stomp.tcp_listen_options.keepalive = true
-stomp.tcp_listen_options.nodelay   = 
+stomp.tcp_listen_options.nodelay   = true
 ```
 
 <br>
@@ -212,8 +234,8 @@ stomp.tcp_listen_options.nodelay   =
 ### 접속환경 설정 및 계정 정보 추가
 
 ```plain
-stomp.default_user = waiker_stomp
-stomp.default_pass = valuesight1!
+stomp.default_user = gosgjung
+stomp.default_pass = soongood~!@#$
 ```
 
 <br>
@@ -243,8 +265,8 @@ stomp.tcp_listen_options.sndbuf    = 131072
 stomp.tcp_listen_options.keepalive = true
 stomp.tcp_listen_options.nodelay   = true
 
-stomp.default_user = waiker_stomp
-stomp.default_pass = valuesight1!
+stomp.default_user = gosgjung
+stomp.default_pass = soongood~!@#$
 
 ```
 
