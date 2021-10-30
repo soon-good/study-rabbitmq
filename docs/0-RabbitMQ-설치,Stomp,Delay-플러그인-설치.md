@@ -1,4 +1,4 @@
-# RabbitMQ 설치하기
+# RabbitMQ 설치, Stomp, Delay 플러그인 설치
 
 RabbitMQ 를 관리형으로 AWS 또는 Azure 에서 지원하는 대로 사용하는 경우도 많을 것이라고 생각된다. 하지만, 인프라가 프라이빗 클라우드 방식일 경우(언론에 알려진 대다수의 IT 대기업 들중 데이터 센터를 가지고 있는 회사들)인 회사들은 그렇게 쉽게 되지 않는다. 직접 사내 클라우드의 리눅스 서버 인스턴스 내에 설치해서 사용해야 한다. 실제 운영 + 모니터링하는 것도 초반에는 개발자가 모두 컨트롤 해야 한다. RabbitMQ를 실제로 관리하는 인프라 부서가 많지 않아서일 듯 하다.<br>
 
@@ -116,17 +116,21 @@ RabbitMQ가 기본으로 제공하는 CLI 들은 아래와 같다.
 
 ## Stomp 플러그인 설치
 
-[Stomp 플러그인 설치](https://www.rabbitmq.com/stomp.html)<br>
-
-<br>
-
-## 플러그인 설치
+> 참고 : [Stomp 플러그인 설치](https://www.rabbitmq.com/stomp.html)<br>
 
 - 설치된 래빗 엠큐 인스턴스에 접속 → Shell 커맨드 실행
+
+```bash
+$ rabbitmq-plugins enable rabbitmq_stomp
+```
 
 <br>
 
 ## RabbitMQ 의 설정파일
+
+> Stomp 플러그인으로 접속할 user/pw, port 등을 설정해줘야 한다.
+
+<br>
 
 ### 설정 파일 경로
 
