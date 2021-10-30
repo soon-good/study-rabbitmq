@@ -121,7 +121,7 @@ RabbitMQ가 기본으로 제공하는 CLI 들은 아래와 같다.
 - 설치된 래빗 엠큐 인스턴스에 접속 → Shell 커맨드 실행
 
 ```bash
-$ rabbitmq-plugins enable rabbitmq_stomp
+$ sudo rabbitmq-plugins enable rabbitmq_stomp
 ```
 
 <br>
