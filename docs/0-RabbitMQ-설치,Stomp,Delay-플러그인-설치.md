@@ -19,6 +19,7 @@ Amazon MQ를 사용한다면, 지원되는 플러그인들은 [여기](https://d
 - [Install - Debian and Ubuntu](https://www.rabbitmq.com/install-debian.html)
 - [Installing on Debian and Ubuntu](https://www.rabbitmq.com/install-debian.html#manual-installation)
 - [RabbitMQ packages have unmet dependencies](https://askubuntu.com/questions/1188699/rabbitmq-packages-have-unmet-dependencies)
+- [cloudamqp.com/blog/part1-rabbitmq-best-practice.html](https://www.cloudamqp.com/blog/part1-rabbitmq-best-practice.html)
 
 <br>
 
@@ -106,11 +107,23 @@ RabbitMQ가 기본으로 제공하는 CLI 들은 아래와 같다.
 
 ## 사용 포트
 
-- 25672 - 0.0.0.0/0
-- 4369 - 0.0.0.0/0
-- 5671 ~ 5672 - 0.0.0.0/0
-- 15672 - 사내망
-- SSH - 사내망
+> 참고 : [Port Access](https://www.rabbitmq.com/install-debian.html#ports)<br>
+
+- `25672` : 노드간 CLI 통신을 위한 포트. 페더레이션을 통해 레플리케이션이 되었을 때 각 노드간 통신을 위한 포트. 자세한 내용은 [여기](https://www.rabbitmq.com/install-debian.html) 를 참고
+- `4369`  : peer discovery service
+  - CLI 또는 RabbitMQ 가 사용하는 peer discovery 시에 사용되는 포트
+  - 쉽게 이야기하면, 다중화를 했을 때 여러개의 노드들이 peer 를 발견하기 위해 사용하는 포트
+- `5671`,` 5671` : AMQP 통신 포트 
+  - 예를 들면 Spring AMQP 를 통해 rabbitmq 에 접속하려면 5671, 5672 포트를 사용해야 한다. 
+- `15672` : HTTP Client API, 어드민 포트
+- `25672` : node 간 통신과 CLI 명령을 위한 포트.
+- `35672 ~ 35682` : CLI 를 위해 사용되는 포트. 자세한 내용은 [networking guide](https://www.rabbitmq.com/networking.html) 를 참고
+- `61613, 61614` : Stomp Client 접속 포트 (TLS 없이 붙는 포트, Stomp Plugin 이 설치되어 있어야 한다.) 
+- `1883, 8883` : MQTT Client 접속 포트 (TLS 없이 붙는 포트, MQTT Plugin 이 설치되어 있어야 한다.)
+- `15674` : Stomp 를 웹소켓을 통해 붙을 때 사용하는 포트. (Web Stomp Plugin 이 설치되어 있어야 한다.)
+  - 참고) 클라이언트에서 바로 래빗엠큐 인스턴스로 웹소켓으로 붙을때 사용하는 플러그인이다.
+- `15675` : MQTT를 웹소켓을 통해 붙을 때 사용하는 포트. (Web MQTT Plugin 이 설치되어 있어야 한다.)
+- `15692` : 프로메테우스 메트릭 (Prometheus plugin 이 설치되어 있어야 한다.)
 
 <br>
 
@@ -271,4 +284,25 @@ stomp.default_pass = soongood~!@#$
 ```
 
 <br>
+
+### /etc/rabbitmq 아래에 이동시키기
+
+root 사용자가 아닌 사용자로 `rabbitmq.conf` 파일을 작업하다가 작업한 내용을 `/etc/rabbitmq` 아래에 복사해주었다. 이때 root 권한으로 복사해줬다.
+
+```bash
+$ sudo -i
+# cp /home/azureuser/rabbitmq /etc/rabbitmq
+# cd /etc/rabbitmq/
+# ls
+enabled_plugins  rabbitmq.conf
+```
+
+<br>
+
+### RabbitMQ 재기동
+
+```bash
+$ sudo systemctl stop rabbitmq-server.service
+$ sudo systemctl start rabbitmq-server.service
+```
 
