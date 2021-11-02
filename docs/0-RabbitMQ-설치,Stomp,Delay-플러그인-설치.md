@@ -246,6 +246,22 @@ stomp.tcp_listen_options.nodelay   = true
 
 ### 접속환경 설정 및 계정 정보 추가
 
+#### 1 ) rabbitmqctl
+
+sudo 권한으로 실행하거나 root 유저로 전환 후 실행
+
+```bash
+# [사용자명] [패스워드] 로 계정 정보 생성
+$ sudo rabbitmqctl add_user [사용자명] [패스워드]
+
+# 사용자를 adminitstrator 라는 태그를 붙이는 예
+$ sudo rabbitmqctl set_user_tags [사용자명] administrator 
+```
+
+<br>
+
+#### 2 ) /etc/rabbitmq/rabbitmq.conf
+
 ```plain
 stomp.default_user = gosgjung
 stomp.default_pass = soongood~!@#$
